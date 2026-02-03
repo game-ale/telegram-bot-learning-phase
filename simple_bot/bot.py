@@ -1,8 +1,8 @@
 import os
 import logging
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, ConversationHandler
 
 # Load environment variables
 load_dotenv()
@@ -14,6 +14,9 @@ logging.basicConfig(
 )
 
 TOKEN = os.getenv('BOT_TOKEN')
+
+# Define states for the ConversationHandler
+NAME, AGE, BIO = range(3)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to the /start command."""
@@ -30,6 +33,48 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def python_regex_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to messages containing 'python'."""
     await context.bot.send_message(chat_id=update.effective_chat.id, text="I love Python too! 🐍")
+
+# --- FSM Handlers ---
+
+async def start_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Starts the registration process."""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! Let's get you registered.\n\nWhat is your full name? (/cancel to stop)")
+    return NAME
+
+async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Stores the name and asks for age."""
+    user_name = update.message.text
+    context.user_data['name'] = user_name
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Nice to meet you, {user_name}! \n\nNow, how old are you?")
+    return AGE
+
+async def receive_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Stores the age and asks for bio."""
+    user_age = update.message.text
+    if not user_age.isdigit():
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter a valid number for your age.")
+        return AGE
+    
+    context.user_data['age'] = user_age
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Got it! Last question:\n\nTell me a little bit about yourself (Bio).")
+    return BIO
+
+async def receive_bio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Stores the bio and ends conversation."""
+    user_bio = update.message.text
+    context.user_data['bio'] = user_bio
+    
+    # Retrieve all data
+    data = context.user_data
+    summary = f"Registration Complete!\n\nName: {data['name']}\nAge: {data['age']}\nBio: {data['bio']}"
+    
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Cancels and ends the conversation."""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Registration canceled. See you later!", reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Echoes the user message."""
@@ -51,6 +96,18 @@ if __name__ == '__main__':
     # This matches any message containing "python" (case-insensitive by default with search, but we use Regex filter)
     # Note: filters.Regex expects a pattern string.
     application.add_handler(MessageHandler(filters.Regex(r"(?i)python"), python_regex_handler))
+
+    # Add ConversationHandler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('register', start_register)],
+        states={
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_name)],
+            AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_age)],
+            BIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_bio)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+    application.add_handler(conv_handler)
 
     # Add a handler for text messages
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
