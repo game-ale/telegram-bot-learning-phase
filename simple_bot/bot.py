@@ -56,6 +56,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
+    logging.info(f"User {update.effective_user.first_name} clicked button: {query.data}")
+
     if query.data == 'more_info':
         await query.edit_message_text(text="Selected Option: More Info\n\nThis bot demonstrates various Telegram features like FSM, Databases, and Keyboards!")
 
