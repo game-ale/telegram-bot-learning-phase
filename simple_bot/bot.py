@@ -3,6 +3,7 @@ import logging
 from dotenv import load_dotenv
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, ConversationHandler
+from db import init_db, save_user
 
 # Load environment variables
 load_dotenv()
@@ -68,6 +69,14 @@ async def receive_bio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = context.user_data
     summary = f"Registration Complete!\n\nName: {data['name']}\nAge: {data['age']}\nBio: {data['bio']}"
     
+    # Save to database
+    try:
+        await save_user(data['name'], data['age'], data['bio'])
+        summary += "\n\n(Saved to Database ✅)"
+    except Exception as e:
+        logging.error(f"Failed to save user: {e}")
+        summary += "\n\n(Failed to save to Database ❌)"
+
     await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
     return ConversationHandler.END
 
@@ -81,8 +90,16 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
 if __name__ == '__main__':
+    # Initialize the database
+    # Note: init_db is async, so we can't call it directly in __main__ easily without an event loop.
+    # However, since application.run_polling() handles the loop, we can use the 'post_init' hook of ApplicationBuilder.
+    pass 
+
+    async def post_init(application: ApplicationBuilder):
+        await init_db()
+
     # Create the Application and pass it your bot's token.
-    application = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
 
     # Add a handler for the /start command
     start_handler = CommandHandler('start', start)
