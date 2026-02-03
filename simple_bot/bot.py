@@ -1,8 +1,8 @@
 import os
 import logging
 from dotenv import load_dotenv
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, ConversationHandler
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, ConversationHandler, CallbackQueryHandler
 from db import init_db, save_user
 
 # Load environment variables
@@ -20,8 +20,13 @@ TOKEN = os.getenv('BOT_TOKEN')
 NAME, AGE, BIO = range(3)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Responds to the /start command."""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    """Responds to the /start command with a Reply Keyboard."""
+    keyboard = [
+        ['/register', '/help'],
+        ['/about', '/links']
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!", reply_markup=reply_markup)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to the /help command."""
@@ -30,6 +35,29 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to the /about command."""
     await context.bot.send_message(chat_id=update.effective_chat.id, text="I am a simple Telegram bot built with Python!")
+
+async def links_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Sends a message with an Inline Keyboard."""
+    keyboard = [
+        [
+            InlineKeyboardButton("GitHub", url='https://github.com/python-telegram-bot/python-telegram-bot'),
+            InlineKeyboardButton("Python Docs", url='https://docs.python.org/3/'),
+        ],
+        [InlineKeyboardButton("More Info", callback_data='more_info')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Check out these resources:", reply_markup=reply_markup)
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()
+
+    if query.data == 'more_info':
+        await query.edit_message_text(text="Selected Option: More Info\n\nThis bot demonstrates various Telegram features like FSM, Databases, and Keyboards!")
 
 async def python_regex_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responds to messages containing 'python'."""
@@ -108,6 +136,10 @@ if __name__ == '__main__':
     # Add other command handlers
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(CommandHandler('about', about_command))
+    application.add_handler(CommandHandler('links', links_command))
+
+    # Add CallbackQueryHandler
+    application.add_handler(CallbackQueryHandler(button_handler))
 
     # Add regex handler (higher priority than echo)
     # This matches any message containing "python" (case-insensitive by default with search, but we use Regex filter)
