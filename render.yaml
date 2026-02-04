@@ -21,7 +21,7 @@ services:
       - key: DB_NAME
         fromDatabase:
           name: bot-db
-          property: name
+          property: database
       - key: DB_USER
         fromDatabase:
           name: bot-db
