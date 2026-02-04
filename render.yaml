@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: telegram-bot
+    plan: free
+    runtime: python
+    buildCommand: pip install -r simple_bot/requirements.txt
+    startCommand: python simple_bot/bot_webhook.py
+    envVars:
+      - key: PORT
+        value: 8443
+      - key: PYTHON_VERSION
+        value: 3.12.1
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: DB_HOST
+        fromDatabase:
+          name: bot-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: bot-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: bot-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: bot-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: bot-db
+          property: port
+
+databases:
+  - name: bot-db
+    plan: free
