@@ -1,0 +1,19 @@
+2026-02-04 05:37:40,418 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8419331255:AAFobWSLnbDHDsXiHZrxytkMidmkCvVfowk/getMe "HTTP/1.1 200 OK"
+2026-02-04 05:37:40,526 - db - INFO - Database initialized and table 'users' checked/created.
+2026-02-04 05:37:40,669 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8419331255:AAFobWSLnbDHDsXiHZrxytkMidmkCvVfowk/setWebhook "HTTP/1.1 200 OK"
+2026-02-04 05:37:40,675 - telegram.ext.Application - INFO - Application started
+2026-02-04 05:38:03,078 - __main__ - INFO - Simulating an error via /error command.
+2026-02-04 05:38:03,080 - __main__ - ERROR - Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\envy\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\envy\AppData\Local\Programs\Python\Python312\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\telegram\telegram-bot-learning-phase\simple_bot\bot_webhook.py", line 94, in error_command
+    result = 1 / 0
+             ~~^~~
+ZeroDivisionError: division by zero
+2026-02-04 05:38:03,569 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8419331255:AAFobWSLnbDHDsXiHZrxytkMidmkCvVfowk/sendMessage "HTTP/1.1 200 OK"
+2026-02-04 05:40:37,288 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2026-02-04 05:40:37,289 - telegram.ext.Application - INFO - Application.stop() complete
