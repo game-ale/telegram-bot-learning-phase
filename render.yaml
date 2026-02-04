@@ -1,6 +1,7 @@
 services:
   - type: web
     name: telegram-bot
+    plan: free
     runtime: python
     buildCommand: pip install -r simple_bot/requirements.txt
     startCommand: python simple_bot/bot_webhook.py
