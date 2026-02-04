@@ -10,4 +10,17 @@ services:
         value: 8443
       - key: PYTHON_VERSION
         value: 3.12.1
-      - fromGroup: telegram-bot-secrets
+      - key: BOT_TOKEN
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: WEBHOOK_URL
+        sync: false
