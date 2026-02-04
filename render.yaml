@@ -12,15 +12,29 @@ services:
         value: 3.12.1
       - key: BOT_TOKEN
         sync: false
-      - key: DB_HOST
-        sync: false
-      - key: DB_NAME
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASS
-        sync: false
-      - key: DB_PORT
-        value: "5432"
       - key: WEBHOOK_URL
         sync: false
+      - key: DB_HOST
+        fromDatabase:
+          name: bot-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: bot-db
+          property: name
+      - key: DB_USER
+        fromDatabase:
+          name: bot-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: bot-db
+          property: password
+      - key: DB_PORT
+        fromDatabase:
+          name: bot-db
+          property: port
+
+databases:
+  - name: bot-db
+    plan: free
